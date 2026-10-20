@@ -1,0 +1,237 @@
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistema de Alumnos</title>
+  <script>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (e) {}
+      if (saved === 'dark' || (saved === null && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --nav-bg: #0f172a;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --green: #16a34a;
+      --red: #dc2626;
+      --gray: #64748b;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(15, 23, 42, .08), 0 4px 14px rgba(15, 23, 42, .06);
+    }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+    /* ---- Navegación ---- */
+    nav { background: var(--nav-bg); padding: 0 24px; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.25); display: flex; align-items: center; }
+    nav > ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; align-items: center; flex-wrap: wrap; flex: 1; }
+    nav > ul > li { position: relative; }
+    nav a { color: #cbd5e1; padding: 14px 14px; text-decoration: none; font-size: 14px; font-weight: 500; display: inline-block; border-radius: 6px; transition: color .15s, background .15s; }
+    nav a:hover { color: #fff; }
+    nav > ul > li > a.active { color: #fff; box-shadow: inset 0 -3px 0 var(--primary); }
+    nav .brand { color: #fff; font-weight: 700; font-size: 15px; margin-right: 12px; padding-left: 22px; position: relative; }
+    nav .brand::before { content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; border-radius: 4px; background: var(--primary); }
+    .caret { font-size: 10px; margin-left: 3px; }
+
+    .dropdown { display: none; list-style: none; position: absolute; top: 100%; left: 0; background: #1e293b; min-width: 220px; padding: 8px; border-radius: 0 0 var(--radius) var(--radius); box-shadow: 0 10px 24px rgba(0,0,0,.35); flex-direction: column; gap: 0; z-index: 20; }
+    .has-dropdown:hover > .dropdown,
+    .has-dropdown:focus-within > .dropdown { display: flex; }
+    .dropdown li { width: 100%; position: relative; }
+    .dropdown a { display: block; padding: 9px 14px; margin: 0; font-weight: normal; border-radius: 6px; }
+    .dropdown a:hover { background: var(--primary); color: #fff; }
+    .dropdown a.active { background: var(--primary); color: #fff; }
+    .dropdown-sub { left: 100%; top: 0; border-radius: var(--radius); }
+    .dropdown .disabled { display: block; padding: 9px 14px; color: #64748b; font-size: 13px; }
+
+    .hamburger { display: none; background: transparent; border: 0; color: #cbd5e1; cursor: pointer; padding: 10px; border-radius: 8px; align-items: center; }
+    .hamburger:hover { background: rgba(255,255,255,.08); color: #fff; }
+
+    .theme-toggle { background: transparent; border: 0; color: #cbd5e1; cursor: pointer; padding: 9px; border-radius: 8px; display: flex; align-items: center; transition: background .15s, color .15s; }
+    .theme-toggle:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .theme-toggle .icon-sun { display: none; }
+    [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+    /* ---- Layout ---- */
+    main { max-width: 1100px; margin: 32px auto; background: var(--card); padding: 32px; border-radius: var(--radius); box-shadow: var(--shadow); }
+    h2 { margin: 0 0 20px; font-size: 24px; font-weight: 700; letter-spacing: -.02em; }
+
+    .hero { text-align: center; padding: 28px 0 8px; }
+    .hero p { color: var(--muted); max-width: 520px; margin: 0 auto; }
+
+    .page-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+    .page-head h2 { margin: 0; }
+
+    /* ---- Tarjetas de resumen ---- */
+    .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .card-stat { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); }
+    .stat-num { display: block; font-size: 28px; font-weight: 700; color: var(--primary); letter-spacing: -.02em; }
+    .stat-label { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* ---- Buscador ---- */
+    .toolbar { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+    .search-input { width: 320px; max-width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; transition: border-color .15s, box-shadow .15s; }
+    .search-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, .15); }
+
+    /* ---- Tablas ---- */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { background: #f8fafc; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+    tbody tr:hover { background: #f8fafc; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .col-id { color: var(--muted); font-size: 13px; }
+    .col-actions { white-space: nowrap; }
+
+    .icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; border: 0; cursor: pointer; color: var(--muted); background: transparent; transition: background .15s, color .15s; vertical-align: middle; text-decoration: none; }
+    .icon-btn.edit:hover { background: #dcfce7; color: var(--green); }
+    .icon-btn.del:hover { background: #fee2e2; color: var(--red); }
+
+    .avatar { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; margin-right: 10px; vertical-align: middle; flex-shrink: 0; }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; }
+    .badge.c0 { background: #eef2ff; color: #4338ca; }
+    .badge.c1 { background: #ecfdf5; color: #047857; }
+    .badge.c2 { background: #fffbeb; color: #b45309; }
+    .badge.c3 { background: #fff1f2; color: #be123c; }
+    .badge.c4 { background: #f0f9ff; color: #0369a1; }
+    .badge.c5 { background: #f5f3ff; color: #6d28d9; }
+    .badge.c6 { background: #f0fdfa; color: #0f766e; }
+    .badge.c7 { background: #fff7ed; color: #c2410c; }
+
+    /* ---- Paginación ---- */
+    .pagination { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 18px; }
+    .pagination-info { margin-right: auto; font-size: 13.5px; color: var(--muted); }
+    .page-btn { min-width: 36px; height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .15s; }
+    .page-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .page-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .page-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .no-results { color: var(--muted); padding: 16px 0; }
+
+    /* ---- Estados vacíos ---- */
+    .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+    .empty-state p { font-size: 16px; margin: 0 0 16px; }
+
+    /* ---- Formularios ---- */
+    .btn { display: inline-block; padding: 9px 18px; border: 0; border-radius: 8px; cursor: pointer; text-decoration: none; color: #fff; background: var(--primary); font-size: 14px; font-weight: 600; transition: background .15s, transform .15s, box-shadow .15s; }
+    .btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(79, 70, 229, .35); }
+    .btn-edit { background: var(--green); }
+    .btn-edit:hover { background: #15803d; box-shadow: 0 4px 10px rgba(22, 163, 74, .35); }
+    .btn-del { background: var(--red); }
+    .btn-del:hover { background: #b91c1c; box-shadow: 0 4px 10px rgba(220, 38, 38, .35); }
+    .btn-gray { background: var(--gray); }
+    .btn-gray:hover { background: #475569; box-shadow: 0 4px 10px rgba(100, 116, 139, .35); }
+    form.inline { display: inline; }
+    label { display: block; margin-top: 16px; font-weight: 600; font-size: 14px; color: #334155; }
+    input[type=text], select { width: 100%; padding: 10px 12px; margin-top: 6px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: #fff; transition: border-color .15s, box-shadow .15s; }
+    input[type=text]:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, .15); }
+
+    .error { background: #fef2f2; color: #991b1b; padding: 12px 16px; border-left: 4px solid var(--red); border-radius: 8px; margin-bottom: 16px; }
+
+    :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+    /* ---- Modo oscuro ---- */
+    [data-theme="dark"] {
+      --bg: #0b1120;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --border: #1f2937;
+      --nav-bg: #020617;
+      --shadow: 0 1px 3px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
+    }
+    [data-theme="dark"] th { background: #1e293b; }
+    [data-theme="dark"] tbody tr:hover { background: #1e293b; }
+    [data-theme="dark"] .search-input,
+    [data-theme="dark"] input[type=text],
+    [data-theme="dark"] select { background: #0f172a; color: var(--text); }
+    [data-theme="dark"] .dropdown { background: #1e293b; }
+    [data-theme="dark"] label { color: #cbd5e1; }
+    [data-theme="dark"] .error { background: #450a0a; color: #fecaca; border-left-color: #ef4444; }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 768px) {
+      nav { flex-wrap: wrap; padding: 6px 12px; }
+      .hamburger {list-style: none; display: flex; }
+      nav > ul#main-menu {list-style: none; display: none; flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 0; padding: 8px 0; }
+      nav > ul#main-menu.open { list-style: none; display: flex; }
+      nav > ul#main-menu > li {list-style: none; width: 100%; }
+      nav > ul#main-menu > li > a {list-style: none; display: block; }
+      .dropdown { position: static; display: flex; box-shadow: none; background: transparent; padding: 0 0 0 20px; min-width: 0; }
+      .dropdown-sub { left: 0; }
+      .theme-toggle { margin-left: auto; }
+      main { margin: 12px; padding: 20px; }
+      .page-head h2 { font-size: 20px; }
+      .toolbar { justify-content: stretch; }
+      .search-input { width: 100%; }
+      th, td { padding: 9px 10px; font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <c:set var="uri" value="${pageContext.request.requestURI}"/>
+  <c:set var="ctx" value="${pageContext.request.contextPath}"/>
+  <c:set var="path" value="${fn:substringAfter(uri, ctx)}"/>
+  <c:set var="section" value="inicio"/>
+  <c:if test="${fn:startsWith(path, '/Facultad') or fn:startsWith(path, '/carreras') or fn:startsWith(path, '/materias')}"><c:set var="section" value="academico"/></c:if>
+  <c:if test="${fn:startsWith(path, '/alumnos') or fn:startsWith(path, '/Listar') or fn:startsWith(path, '/Agregar')}"><c:set var="section" value="alumnos"/></c:if>
+  <c:if test="${fn:startsWith(path, '/MesasJulio') or fn:startsWith(path, '/SinExamenes') or fn:startsWith(path, '/DocentesMasDeDos')}"><c:set var="section" value="reportes"/></c:if>
+  <nav>
+    <button class="hamburger" id="hamburger" aria-label="Abrir menú" aria-expanded="false" aria-controls="main-menu">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <ul id="main-menu">
+      <li><a class="brand" href="${ctx}/">Sistema de Alumnos</a></li>
+      <li><a href="${ctx}/" class="${section == 'inicio' ? 'active' : ''}">Inicio</a></li>
+      <li class="has-dropdown">
+        <a href="#" class="${section == 'academico' ? 'active' : ''}" aria-haspopup="true">Academico<span class="caret"></span></a>
+        <ul class="dropdown">
+          <li class="has-dropdown">
+            <a href="#" class="${path == '/Facultad' ? 'active' : ''}">Facultades</a>
+            <ul class="dropdown dropdown-sub">
+              <c:forEach var="facu" items="${facultades}">
+                <li><a href="${ctx}/Facultad?codigoFacu=${facu.idfacultad}"><c:out value="${facu.nombre}"/></a></li>
+              </c:forEach>
+              <c:if test="${empty facultades}"><li><span class="disabled">(sin facultades)</span></li></c:if>
+            </ul>
+          </li>
+          <li><a href="${ctx}/carreras" class="${fn:startsWith(path, '/carreras') ? 'active' : ''}">Carreras</a></li>
+          <li><a href="${ctx}/materias" class="${fn:startsWith(path, '/materias') ? 'active' : ''}">Materias</a></li>
+        </ul>
+      </li>
+      <li class="has-dropdown">
+        <a href="#" class="${section == 'alumnos' ? 'active' : ''}" aria-haspopup="true">Alumnos<span class="caret"></span></a>
+        <ul class="dropdown">
+          <li><a href="${ctx}/alumnos" class="${fn:startsWith(path, '/alumnos') ? 'active' : ''}">Listar</a></li>
+          <li><a href="${ctx}/Agregar" class="${path == '/Agregar' ? 'active' : ''}">Agregar (EJB)</a></li>
+          <li><a href="${ctx}/Listar" class="${path == '/Listar' ? 'active' : ''}">Listar (EJB)</a></li>
+        </ul>
+      </li>
+      <li class="has-dropdown">
+        <a href="#" class="${section == 'reportes' ? 'active' : ''}" aria-haspopup="true">Reportes<span class="caret"></span></a>
+        <ul class="dropdown">
+          <li><a href="${ctx}/MesasJulio" class="${path == '/MesasJulio' ? 'active' : ''}">Mesas de julio</a></li>
+          <li><a href="${ctx}/SinExamenes" class="${path == '/SinExamenes' ? 'active' : ''}">Alumnos sin examenes</a></li>
+          <li><a href="${ctx}/DocentesMasDeDos" class="${path == '/DocentesMasDeDos' ? 'active' : ''}">Docentes </a></li>
+        </ul>
+      </li>
+    </ul>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar entre modo claro y oscuro" aria-pressed="false">
+      <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+    </button>
+  </nav>
+<main>
+<c:if test="${not empty error}"><div class="error">${error}</div></c:if>

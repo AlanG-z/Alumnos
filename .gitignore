@@ -1,0 +1,23 @@
+# Maven / build
+target/
+*.war
+*.ear
+*.class
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.settings/
+.classpath
+.project
+
+# NetBeans (nbactions.xml y nb-configuration.xml se versionan a propósito)
+nbproject/private/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

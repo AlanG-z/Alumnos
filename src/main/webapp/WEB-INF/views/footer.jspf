@@ -1,0 +1,134 @@
+</main>
+<script>
+  (function () {
+    'use strict';
+
+    /* ---- Tema claro / oscuro ---- */
+    var themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      var syncToggle = function () {
+        themeToggle.setAttribute('aria-pressed', String(document.documentElement.getAttribute('data-theme') === 'dark'));
+      };
+      themeToggle.addEventListener('click', function () {
+        var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (dark) {
+          document.documentElement.removeAttribute('data-theme');
+          try { localStorage.setItem('theme', 'light'); } catch (e) {}
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          try { localStorage.setItem('theme', 'dark'); } catch (e) {}
+        }
+        syncToggle();
+      });
+      syncToggle();
+    }
+
+    /* ---- Menú hamburguesa ---- */
+    var hamburger = document.getElementById('hamburger');
+    var menu = document.getElementById('main-menu');
+    if (hamburger && menu) {
+      hamburger.addEventListener('click', function () {
+        var open = menu.classList.toggle('open');
+        hamburger.setAttribute('aria-expanded', String(open));
+      });
+    }
+
+    /* ---- Tabla de alumnos: buscador + paginación ---- */
+    var PAGE_SIZE = 10;
+    var tabla = document.getElementById('tabla-alumnos');
+    if (tabla) {
+      var search = document.getElementById('search');
+      var paginacion = document.getElementById('paginacion');
+      var noResults = document.getElementById('sin-resultados');
+      var qSpan = document.getElementById('q');
+      var rows = Array.prototype.slice.call(tabla.querySelectorAll('tbody tr'));
+      var page = 1;
+
+      function filtradas() {
+        var q = search.value.trim().toLowerCase();
+        if (!q) { return rows; }
+        return rows.filter(function (r) {
+          return (r.getAttribute('data-search') || '').toLowerCase().indexOf(q) !== -1;
+        });
+      }
+
+      function render() {
+        var vis = filtradas();
+        var total = vis.length;
+        var pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        if (page > pages) { page = pages; }
+        var desde = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+        var hasta = Math.min(total, page * PAGE_SIZE);
+
+        rows.forEach(function (r) { r.style.display = 'none'; });
+        vis.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).forEach(function (r) { r.style.display = ''; });
+
+        if (noResults) {
+          noResults.hidden = total !== 0;
+          if (qSpan && search.value.trim()) { qSpan.textContent = search.value.trim(); }
+        }
+
+        paginacion.innerHTML = '';
+        var info = document.createElement('span');
+        info.className = 'pagination-info';
+        info.textContent = 'Mostrando ' + desde + '–' + hasta + ' de ' + total + (total === 1 ? ' alumno' : ' alumnos');
+        paginacion.appendChild(info);
+
+        function boton(label, opts) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'page-btn' + (opts.active ? ' active' : '');
+          b.textContent = label;
+          if (opts.disabled) { b.disabled = true; }
+          if (opts.page) {
+            b.addEventListener('click', function () {
+              page = opts.page;
+              render();
+            });
+          }
+          paginacion.appendChild(b);
+        }
+
+        boton('← Anterior', { disabled: page === 1, page: page - 1 });
+        for (var i = 1; i <= pages; i++) { boton(String(i), { active: i === page, page: i }); }
+        boton('Siguiente →', { disabled: page === pages, page: page + 1 });
+      }
+
+      search.addEventListener('input', function () {
+        page = 1;
+        render();
+      });
+      render();
+    }
+
+    /* ---- Avatares con iniciales ---- */
+    document.querySelectorAll('[data-avatar]').forEach(function (cell) {
+      var nombre = cell.textContent.trim();
+      var partes = nombre.split(/\s+/).filter(Boolean);
+      var iniciales = partes.slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join('');
+      var hash = 0;
+      for (var i = 0; i < nombre.length; i++) { hash = (hash * 31 + nombre.charCodeAt(i)) >>> 0; }
+      var hue = hash % 360;
+      var span = document.createElement('span');
+      span.className = 'avatar';
+      span.textContent = iniciales || '?';
+      span.style.background = 'linear-gradient(135deg, hsl(' + hue + ',65%,55%), hsl(' + ((hue + 40) % 360) + ',65%,42%))';
+      cell.insertBefore(span, cell.firstChild);
+    });
+
+    /* ---- Badges de color por carrera ---- */
+    var PALETTE = ['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7'];
+    document.querySelectorAll('[data-badge]').forEach(function (cell) {
+      var texto = cell.textContent.trim();
+      var hash = 0;
+      for (var i = 0; i < texto.length; i++) { hash = (hash * 31 + texto.charCodeAt(i)) >>> 0; }
+      var span = document.createElement('span');
+      span.className = 'badge ' + PALETTE[hash % PALETTE.length];
+      span.textContent = texto;
+      cell.textContent = '';
+      cell.appendChild(span);
+    });
+  })();
+</script>
+</body>
+</html>
