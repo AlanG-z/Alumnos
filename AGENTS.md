@@ -1,12 +1,12 @@
 # AGENTS.md
 
-Jakarta EE 11 (webapp 6.0) student-management app: Java 17, Maven WAR, deployed on GlassFish, MySQL database `bdalumnos`. NetBeans project (`nbactions.xml`, `nb-configuration.xml` are committed — keep them in sync with `pom.xml`).
+Jakarta EE 11 (webapp 6.0) student-management app: Java 17, Maven WAR, deployed on GlassFish, MySQL database `bdalumnos`. NetBeans project (`nbactions.xml`, `nb-configuration.xml` are committed — keep them in sync with `pom.xml`). Remote: `https://github.com/AlanG-z/Alumnos` (public).
 
 ## Build & run
 
 - `mvn package` builds the WAR into `target/Alumnos-1.0-SNAPSHOT.war`. No tests, lint, typecheck, or CI exist (`src/test` is empty) — verification is manual against a running GlassFish + MySQL.
 - The `jakarta.jakartaee-api` dependency is `provided` scope, so the WAR bundles no libraries — it only runs on a server that supplies Jakarta EE 11. There is no embedded/dev-server mode.
-- The app only runs where the GlassFish JDBC resource `java:app/jdbc/bdalumnos` exists; the pool/datasource is defined in `src/main/webapp/WEB-INF/glassfish-resources.xml` (MySQL on localhost:3306). Credentials are hardcoded there — do not copy them into other files.
+- The app only runs where the GlassFish JDBC resource `java:app/jdbc/bdalumnos` exists; the pool/datasource is defined in `src/main/webapp/WEB-INF/glassfish-resources.xml` (MySQL on localhost:3306). `User`/`Password` there are **placeholders** (`TU_USUARIO_MYSQL` / `TU_PASSWORD_MYSQL`) — set real MySQL credentials before deploying and never commit them.
 - NetBeans Run/Debug/Profile all just run the Maven `package` goal and deploy (`nbactions.xml`); there is no separate deploy step or script.
 
 ## Architecture
