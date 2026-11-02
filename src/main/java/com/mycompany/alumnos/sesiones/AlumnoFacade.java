@@ -26,6 +26,13 @@ public class AlumnoFacade extends AbstractFacade<Alumno> {
         em.persist(a);
     }
 
+    public void actualizar(Integer id, String nombre, String registro, Integer idCarrera) {
+        Alumno a = em.find(Alumno.class, id);
+        a.setNombre(nombre);
+        a.setRegistro(registro);
+        a.setCarreraIdcarrera(em.find(Carrera.class, idCarrera));
+    }
+
     // Ejercicio 6.2: alumnos que no rindieron ningún examen en el año indicado
     public List<Alumno> sinExamenesEnAnio(int anio) {
         return em.createQuery(

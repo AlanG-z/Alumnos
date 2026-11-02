@@ -15,4 +15,15 @@ public class MateriaFacade extends AbstractFacade<Materia> {
 
     @Override
     protected EntityManager getEntityManager() { return em; }
+
+    public void crear(String nombre) {
+        Materia m = new Materia();
+        m.setNombre(nombre);
+        em.persist(m);
+    }
+
+    public void actualizar(Integer id, String nombre) {
+        Materia m = em.find(Materia.class, id);
+        m.setNombre(nombre);
+    }
 }

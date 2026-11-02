@@ -28,7 +28,7 @@
     <input type="text" id="search" class="search-input" placeholder="Buscar por nombre, registro o carrera…" autocomplete="off">
   </div>
   <div class="table-wrap">
-    <table class="datatable" id="tabla-alumnos">
+    <table class="datatable" id="tabla-alumnos" data-datatable>
       <thead>
         <tr><th class="col-id">ID</th><th>Nombre</th><th>Registro</th><th>Carrera</th><th>Acciones</th></tr>
       </thead>

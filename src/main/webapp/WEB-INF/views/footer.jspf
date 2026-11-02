@@ -35,7 +35,7 @@
 
     /* ---- Tabla de alumnos: buscador + paginación ---- */
     var PAGE_SIZE = 10;
-    var tabla = document.getElementById('tabla-alumnos');
+    var tabla = document.querySelector('[data-datatable]');
     if (tabla) {
       var search = document.getElementById('search');
       var paginacion = document.getElementById('paginacion');

@@ -19,6 +19,12 @@ public abstract class AbstractFacade<T> {
 
     public T find(Object id) { return getEntityManager().find(entityClass, id); }
 
+    // Busca y borra en la misma transacción (antes lo hacía GenericDAO con RESOURCE_LOCAL)
+    public void removeById(Object id) {
+        T entity = find(id);
+        if (entity != null) remove(entity);
+    }
+
     public List<T> findAll() {
         return getEntityManager()
                 .createQuery("SELECT e FROM " + entityClass.getSimpleName() + " e", entityClass)

@@ -30,7 +30,9 @@ public class Docente implements Serializable {
     @Column(name = "cargo", nullable = false, length = 10)
     private Cargo cargo;
 
-    @ManyToMany
+    // EAGER: el formulario de edición y los listados leen la colección fuera de la
+    // transacción (JSP), donde una colección perezosa no estaría inicializable.
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "docente_has_materia", catalog = "bdalumnos", schema = "",
             joinColumns = @JoinColumn(name = "docente_iddocente", referencedColumnName = "iddocente"),
             inverseJoinColumns = @JoinColumn(name = "materia_idmateria", referencedColumnName = "idmateria"))

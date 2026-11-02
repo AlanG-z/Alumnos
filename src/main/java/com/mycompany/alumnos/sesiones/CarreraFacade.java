@@ -1,6 +1,7 @@
 package com.mycompany.alumnos.sesiones;
 
 import com.mycompany.alumnos.Carrera;
+import com.mycompany.alumnos.Facultad;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -23,5 +24,18 @@ public class CarreraFacade extends AbstractFacade<Carrera> {
                 Carrera.class)
                 .setParameter("id", idFacultad)
                 .getResultList();
+    }
+
+    public void crear(String nombre, Integer idFacultad) {
+        Carrera c = new Carrera();
+        c.setNombre(nombre);
+        c.setFacultadIdfacultad(em.find(Facultad.class, idFacultad));
+        em.persist(c);
+    }
+
+    public void actualizar(Integer id, String nombre, Integer idFacultad) {
+        Carrera c = em.find(Carrera.class, id);
+        c.setNombre(nombre);
+        c.setFacultadIdfacultad(em.find(Facultad.class, idFacultad));
     }
 }

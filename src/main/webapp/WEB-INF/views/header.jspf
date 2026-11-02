@@ -119,6 +119,8 @@
     .page-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; }
     .page-btn:disabled { opacity: .45; cursor: not-allowed; }
     .no-results { color: var(--muted); padding: 16px 0; }
+    .muted { color: var(--muted); }
+    .hint { font-weight: 400; font-size: 12.5px; color: var(--muted); }
 
     /* ---- Estados vacíos ---- */
     .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
@@ -185,7 +187,7 @@
   <c:set var="ctx" value="${pageContext.request.contextPath}"/>
   <c:set var="path" value="${fn:substringAfter(uri, ctx)}"/>
   <c:set var="section" value="inicio"/>
-  <c:if test="${fn:startsWith(path, '/Facultad') or fn:startsWith(path, '/carreras') or fn:startsWith(path, '/materias')}"><c:set var="section" value="academico"/></c:if>
+  <c:if test="${fn:startsWith(path, '/Facultad') or fn:startsWith(path, '/carreras') or fn:startsWith(path, '/materias') or fn:startsWith(path, '/docentes')}"><c:set var="section" value="academico"/></c:if>
   <c:if test="${fn:startsWith(path, '/alumnos') or fn:startsWith(path, '/Listar') or fn:startsWith(path, '/Agregar')}"><c:set var="section" value="alumnos"/></c:if>
   <c:if test="${fn:startsWith(path, '/MesasJulio') or fn:startsWith(path, '/SinExamenes') or fn:startsWith(path, '/DocentesMasDeDos')}"><c:set var="section" value="reportes"/></c:if>
   <nav>
@@ -209,6 +211,7 @@
           </li>
           <li><a href="${ctx}/carreras" class="${fn:startsWith(path, '/carreras') ? 'active' : ''}">Carreras</a></li>
           <li><a href="${ctx}/materias" class="${fn:startsWith(path, '/materias') ? 'active' : ''}">Materias</a></li>
+          <li><a href="${ctx}/docentes" class="${fn:startsWith(path, '/docentes') ? 'active' : ''}">Docentes</a></li>
         </ul>
       </li>
       <li class="has-dropdown">
