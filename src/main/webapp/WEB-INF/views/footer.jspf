@@ -89,9 +89,9 @@
           paginacion.appendChild(b);
         }
 
-        boton('â† Anterior', { disabled: page === 1, page: page - 1 });
+        boton('Anterior', { disabled: page === 1, page: page - 1 });
         for (var i = 1; i <= pages; i++) { boton(String(i), { active: i === page, page: i }); }
-        boton('Siguiente â†’', { disabled: page === pages, page: page + 1 });
+        boton('Siguiente†’', { disabled: page === pages, page: page + 1 });
       }
 
       search.addEventListener('input', function () {
